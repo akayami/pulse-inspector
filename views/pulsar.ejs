@@ -1,0 +1,42 @@
+<html>
+
+	<head>
+		<title>Graph</title>
+		<script src="/socket.io/socket.io.js"></script>
+		<script src="/js/smoothie.js"></script>
+		<script type="text/javascript">
+			var dataSeries = new TimeSeries();
+
+			var socket = io.connect('http://localhost:8081');
+
+			socket.on('service', function(msg) {
+				console.log(msg);
+			})
+
+			socket.on('data', function(data) {
+				dataSeries.append(new Date().getTime(), data);
+			});
+
+			function createTimeline() {
+				var chart = new SmoothieChart();
+				chart.addTimeSeries(dataSeries, {
+					strokeStyle: 'rgba(0, 255, 0, 1)',
+					fillStyle: 'rgba(0, 255, 0, 0.2)',
+					lineWidth: 1
+				});
+				chart.streamTo(document.getElementById("chart"), 1000);
+			}
+		</script>
+	</head>
+
+	<body onload="createTimeline()">
+		<h1>Graph</h1>
+		<canvas id="chart" width="1000" height="300"></canvas>
+		<script>
+			(function() {
+				createTimeline();
+			})();
+		</script>
+	</body>
+
+</html>

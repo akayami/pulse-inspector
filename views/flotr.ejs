@@ -1,0 +1,105 @@
+<html>
+
+	<head>
+		<title>Graph</title>
+		<script src="/socket.io/socket.io.js"></script>
+		<script src="/js/flotr2.min.js" type="text/javascript"></script>
+	</head>
+
+	<style type="text/css">
+		body {
+			margin: 0px;
+			padding: 0px;
+		}
+
+		#container {
+			width: 100%;
+			height: 384px;
+			margin: 8px auto;
+		}
+	</style>
+
+	<body>
+		<h1>Graph</h1>
+		<div id="container"></div>
+		<script type="text/javascript">
+			var buffer = {};
+			var density = 100;
+
+
+			var dataset = [];
+			var limit = 200;
+
+
+
+			(function() {
+
+				var socket = io.connect('http://localhost:8081');
+
+				socket
+					.on('service', function(msg) {
+//						console.log(msg);
+					})
+
+					socket
+						.on('data', function(data) {
+
+							dataset.push([new Date().getTime(), data]);
+							if(dataset.length > limit) {
+								dataset.shift();
+							}
+						});
+
+
+				var container = document.getElementById('container'),
+					start = (new Date).getTime(),
+					data,
+					graph,
+//					offset,
+					i;
+
+				// Draw a sine curve at time t
+				function animate(t) {
+
+					data = [];
+//					offset = 2 * Math.PI * (t - start) / 10000;
+
+					var ymax = 0;
+					var xmax = 0;
+
+					//console.log(dataset.length)
+
+					for(var i = 0; i < limit; i++) {
+					//for(var i = 0; i < dataset.length; i++) {
+					//for(i = dataset.length; i >= 0; i--) {
+						var val = (dataset[i] ? dataset[i][1] : 0);
+						ymax = Math.max(ymax,val);
+						data.push([i, val]);
+					}
+
+					// Draw Graph
+					graph = Flotr.draw(container, [data], {
+						yaxis: {
+							max: ymax,
+							min: 0
+						},
+						xaxis: {
+							max: limit,
+							min: 0,
+							timeUnit:'millisecond',
+							mode: 'time'
+						}
+					});
+
+					// Animate
+					setTimeout(function() {
+						animate((new Date).getTime());
+					}, 50);
+				}
+
+				animate(start);
+			})();
+		</script>
+	</body>
+
+</html>
